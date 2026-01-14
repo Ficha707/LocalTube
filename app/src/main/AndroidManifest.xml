@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="ru.f1cha.localtube">
+
+    <!-- Разрешения для разных версий Android -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- Разрешение для управления внешним хранилищем (Android 11+) -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
+    <!-- Для воспроизведения видео в фоне -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="LocalTube"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+        android:requestLegacyExternalStorage="true"
+        tools:targetApi="31"
+        android:preserveLegacyExternalStorage="true">
+
+        <!-- Главная активность -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- СЕРВИС ДЛЯ ФОНОВОГО ВОСПРОИЗВЕДЕНИЯ -->
+        <service
+            android:name="ru.f1cha.localtube.service.VideoPlayerService"
+            android:enabled="true"
+            android:exported="false" />
+
+        <!-- Для работы с аудиофокусом -->
+        <meta-data
+            android:name="android.media.metadata.CONTENT_TYPE"
+            android:value="VIDEO" />
+
+    </application>
+
+</manifest>

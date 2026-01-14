@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Внешний круг -->
+    <path
+        android:pathData="M60,10A50,50 0 1,1 10,60A50,50 0 1,1 60,10Z"
+        android:strokeWidth="4"
+        android:strokeColor="#FF0000"
+        android:fillColor="#00000000" />
+
+    <!-- Иконка play (треугольник) -->
+    <path
+        android:pathData="M45,40L75,60L45,80Z"
+        android:fillColor="#FF0000" />
+
+    <!-- Волны звука (символично) -->
+    <path
+        android:pathData="M85,40 Q90,45 85,50 Q80,55 85,60 Q90,65 85,70"
+        android:strokeWidth="3"
+        android:strokeColor="#FF0000"
+        android:fillColor="#00000000" />
+
+    <path
+        android:pathData="M95,35 Q105,45 95,55 Q85,65 95,75"
+        android:strokeWidth="3"
+        android:strokeColor="#FF0000"
+        android:fillColor="#00000000" />
+
+</vector>
