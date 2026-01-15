@@ -27,6 +27,16 @@ class VideoAdapter(
         stateManager = manager
     }
 
+    fun removeVideoById(videoId: Long) {
+        val index = videos.indexOfFirst { it.id == videoId }
+        if (index != -1) {
+            val mutableList = videos.toMutableList()
+            mutableList.removeAt(index)
+            videos = mutableList.toList()
+            notifyItemRemoved(index)
+        }
+    }
+
     fun setCurrentPlayingVideoId(videoId: Long) {
         this.currentPlayingVideoId = videoId
         notifyDataSetChanged()

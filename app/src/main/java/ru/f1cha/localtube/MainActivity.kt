@@ -421,49 +421,48 @@ class MainActivity : AppCompatActivity() {
     private fun deleteVideo(position: Int) {
         val video = adapter.getVideoAtPosition(position)
 
-        // Проверяем, есть ли разрешение на удаление
+        // Проверяем, является ли видео текущим
+        if (currentPlayingVideo?.id == video.id) {
+            videoPlayerManager.stop()
+            currentPlayingVideo = null
+            tvPlayerTitle.text = "LocalTube"
+        }
+
+        // Проверяем разрешения
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
             !Environment.isExternalStorageManager()) {
-            Toast.makeText(
-                this,
-                "Для удаления видео нужно разрешение на управление файлами",
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(this, "Для удаления видео нужно разрешение на управление файлами", Toast.LENGTH_LONG).show()
             requestManageExternalStoragePermission()
-            adapter.notifyItemChanged(position) // Обновляем элемент, чтобы вернуть его на место
+            adapter.notifyItemChanged(position)
             return
         }
 
         Thread {
             try {
-                // Пытаемся удалить через репозиторий
                 val deleted = repository.deleteVideo(video)
 
                 runOnUiThread {
                     if (deleted) {
-                        Toast.makeText(
-                            this,
-                            "Видео удалено",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        loadVideos() // Перезагружаем весь список
+                        // ЛОКАЛЬНО удаляем видео из всех списков
+                        allVideos = allVideos.filter { it.id != video.id }
+                        adapter.removeVideoById(video.id) // Новый метод в адаптере
+
+                        // Проверяем, не пустой ли список
+                        if (adapter.itemCount == 0) {
+                            recyclerView.visibility = View.GONE
+                            layoutQueueHeader.visibility = View.GONE
+                        }
+
+                        Toast.makeText(this, "Видео удалено", Toast.LENGTH_SHORT).show()
                     } else {
-                        adapter.notifyItemChanged(position) // Возвращаем элемент на место
-                        Toast.makeText(
-                            this,
-                            "Не удалось удалить видео",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        adapter.notifyItemChanged(position)
+                        Toast.makeText(this, "Не удалось удалить видео", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    adapter.notifyItemChanged(position) // Возвращаем элемент на место
-                    Toast.makeText(
-                        this,
-                        "Ошибка при удалении: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    adapter.notifyItemChanged(position)
+                    Toast.makeText(this, "Ошибка при удалении: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }.start()
