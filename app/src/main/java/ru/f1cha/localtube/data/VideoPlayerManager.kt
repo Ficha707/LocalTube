@@ -1,7 +1,6 @@
 package ru.f1cha.localtube.data
 
 import android.content.Context
-import android.content.Intent
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -181,11 +180,5 @@ class VideoPlayerManager(private val context: Context, private val stateManager:
     // Получаем длительность текущего видео
     fun getDuration(): Long {
         return player?.duration ?: 0
-    }
-
-    // Полностью останавливаем воспроизведение
-    fun stop() {
-        player?.stop()
-        stopBackgroundService()
     }
 }

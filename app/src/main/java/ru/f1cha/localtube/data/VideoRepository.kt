@@ -1,10 +1,8 @@
 package ru.f1cha.localtube.data
 
-import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -172,54 +170,5 @@ class VideoRepository(private val context: Context) {
 
         Log.d(TAG, "Всего загружено видео из папки Movies: ${videos.size}")
         return videos
-    }
-
-    fun getVideosByFolder(folderName: String): List<Video> {
-        val allVideos = getAllVideos()
-        return allVideos.filter { it.folderName == folderName }
-    }
-
-    fun getAllFolders(): List<String> {
-        val allVideos = getAllVideos()
-        return allVideos
-            .mapNotNull { it.folderName }
-            .distinct()
-            .sorted()
-    }
-
-    // Получаем миниатюру для видео
-    fun getVideoThumbnail(videoId: Long): android.graphics.Bitmap? {
-        return try {
-            val thumb = MediaStore.Video.Thumbnails.getThumbnail(
-                context.contentResolver,
-                videoId,
-                MediaStore.Video.Thumbnails.MINI_KIND,
-                null
-            )
-            thumb
-        } catch (e: Exception) {
-            Log.e(TAG, "Не удалось получить превью для видео $videoId: ${e.message}")
-            null
-        }
-    }
-
-    // Получаем путь к превью (для Glide)
-    fun getVideoThumbnailUri(videoId: Long): android.net.Uri {
-        return android.content.ContentUris.withAppendedId(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            videoId
-        )
-    }
-
-    // Получить URI для видео
-    fun getVideoUri(video: Video): Uri {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ContentUris.withAppendedId(
-                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
-                video.id
-            )
-        } else {
-            Uri.fromFile(File(video.path))
-        }
     }
 }

@@ -423,7 +423,6 @@ class MainActivity : AppCompatActivity() {
 
         // Проверяем, является ли видео текущим
         if (currentPlayingVideo?.id == video.id) {
-            videoPlayerManager.stop()
             currentPlayingVideo = null
             tvPlayerTitle.text = "LocalTube"
         }

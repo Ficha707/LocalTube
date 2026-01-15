@@ -32,15 +32,6 @@ class VideoStateManager(context: Context) {
         return ((progress * 100) / duration).toInt()
     }
 
-    // === Метка "просмотрено" ===
-    fun markAsWatched(videoId: Long) {
-        prefs.edit().putBoolean("${KEY_PREFIX_WATCHED}$videoId", true).apply()
-    }
-
-    fun isWatched(videoId: Long): Boolean {
-        return prefs.getBoolean("${KEY_PREFIX_WATCHED}$videoId", false)
-    }
-
     // === Последнее видео ===
     fun saveLastVideo(videoId: Long, position: Long) {
         prefs.edit().apply {
@@ -52,25 +43,4 @@ class VideoStateManager(context: Context) {
 
     fun getLastVideoId(): Long = prefs.getLong(KEY_LAST_VIDEO_ID, 0L)
     fun getLastVideoPosition(): Long = prefs.getLong(KEY_LAST_VIDEO_POSITION, 0L)
-
-    // === Закрепленные видео ===
-    fun savePinnedVideo(videoId: Long) {
-        val pinned = getPinnedVideos().toMutableSet()
-        pinned.add(videoId.toString())
-        prefs.edit().putStringSet(KEY_PINNED_VIDEOS, pinned).apply()
-    }
-
-    fun removePinnedVideo(videoId: Long) {
-        val pinned = getPinnedVideos().toMutableSet()
-        pinned.remove(videoId.toString())
-        prefs.edit().putStringSet(KEY_PINNED_VIDEOS, pinned).apply()
-    }
-
-    fun getPinnedVideos(): Set<String> {
-        return prefs.getStringSet(KEY_PINNED_VIDEOS, emptySet()) ?: emptySet()
-    }
-
-    fun isVideoPinned(videoId: Long): Boolean {
-        return getPinnedVideos().contains(videoId.toString())
-    }
 }
