@@ -1,23 +1,24 @@
 package ru.f1cha.localtube.adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ru.f1cha.localtube.R
-import ru.f1cha.localtube.data.ThumbnailLoader
 import ru.f1cha.localtube.data.Video
 import ru.f1cha.localtube.data.VideoStateManager
 import android.graphics.Color
+import androidx.appcompat.app.AppCompatActivity
 
 class VideoAdapter(
-
     private var videos: List<Video>,
-    private val onItemClick: (Video) -> Unit
+    private val onItemClick: (Video) -> Unit,
+    private val onAddToPlaylist: (Video) -> Unit,
+    private val onDeleteVideo: (Video, callback: (Boolean) -> Unit) -> Unit
 ) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
 
     private lateinit var stateManager: VideoStateManager
@@ -25,21 +26,6 @@ class VideoAdapter(
 
     fun setStateManager(manager: VideoStateManager) {
         stateManager = manager
-    }
-
-    fun removeVideoById(videoId: Long) {
-        val index = videos.indexOfFirst { it.id == videoId }
-        if (index != -1) {
-            val mutableList = videos.toMutableList()
-            mutableList.removeAt(index)
-            videos = mutableList.toList()
-            notifyItemRemoved(index)
-        }
-    }
-
-    fun setCurrentPlayingVideoId(videoId: Long) {
-        this.currentPlayingVideoId = videoId
-        notifyDataSetChanged()
     }
 
     fun updateVideos(newVideos: List<Video>) {
@@ -63,13 +49,10 @@ class VideoAdapter(
             tvDuration.text = video.getFormattedDuration()
             tvSize.text = video.getFormattedSize()
 
-            // Папку убрали из отображения
-            // tvFolder.text = video.folderName ?: "Без папки"
+            // Загружаем превью через кэш
+            ivThumbnail.loadVideoThumbnail(itemView.context, video.id)
 
-            // Загружаем превью видео
-            ThumbnailLoader.loadVideoThumbnail(itemView.context, video.id, ivThumbnail)
-
-            // Получаем прогресс просмотра через VideoStateManager
+            // Получаем прогресс просмотра
             val savedPosition = stateManager.getProgress(video.id)
             val progressPercentage = if (savedPosition > 0 && video.duration > 0) {
                 ((savedPosition * 100) / video.duration).toInt()
@@ -77,7 +60,7 @@ class VideoAdapter(
                 0
             }
 
-            // Настраиваем красный прогресс-бар
+            // Настраиваем прогресс-бар
             if (progressPercentage > 0) {
                 progressWatched.visibility = View.VISIBLE
                 progressWatched.progress = progressPercentage
@@ -85,16 +68,94 @@ class VideoAdapter(
                 progressWatched.visibility = View.GONE
             }
 
-            // Подсветка текущего воспроизводимого видео (меняем фон)
+            // Подсветка текущего воспроизводимого видео
             if (video.id == currentPlayingVideoId) {
-                itemView.setBackgroundColor(Color.parseColor("#2A2A2A")) // Светлее чёрного
+                itemView.setBackgroundColor(Color.parseColor("#2A2A2A"))
             } else {
-                itemView.setBackgroundColor(Color.parseColor("#000000")) // Чёрный
+                itemView.setBackgroundColor(Color.parseColor("#000000"))
             }
 
+            // Обработка клика - открытие плеера
             itemView.setOnClickListener {
                 onItemClick(video)
             }
+
+            // Обработка долгого нажатия - контекстное меню
+            itemView.setOnLongClickListener {
+                showContextMenu(video, it)
+                true
+            }
+        }
+
+        /**
+         * Показывает контекстное меню при долгом нажатии
+         */
+        private fun showContextMenu(video: Video, anchor: View) {
+            val popup = PopupMenu(itemView.context, anchor)
+            popup.menuInflater.inflate(R.menu.video_context_menu, popup.menu)
+
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_add_to_playlist -> {
+                        onAddToPlaylist(video)
+                        true
+                    }
+                    R.id.action_delete -> {
+                        showDeleteConfirmationDialog(video)
+                        true
+                    }
+                    R.id.action_info -> {
+                        showVideoInfoDialog(video)
+                        true
+                    }
+                    else -> false
+                }
+            }
+
+            popup.show()
+        }
+
+        /**
+         * Диалог подтверждения удаления
+         */
+        private fun showDeleteConfirmationDialog(video: Video) {
+            androidx.appcompat.app.AlertDialog.Builder(itemView.context)
+                .setTitle("Удаление видео")
+                .setMessage("Удалить видео \"${video.title}\"?")
+                .setPositiveButton("Удалить") { dialog, _ ->
+                    dialog.dismiss()
+                    onDeleteVideo(video) { success ->
+                        if (success) {
+                            // Удаляем локально из списка
+                            val position = adapterPosition
+                            if (position != RecyclerView.NO_POSITION) {
+                                // Уведомляем адаптер об удалении
+                                // (будет обработано в MainActivity)
+                            }
+                        }
+                    }
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
+        }
+
+        /**
+         * Диалог с информацией о видео
+         */
+        private fun showVideoInfoDialog(video: Video) {
+            val info = """
+                Название: ${video.title}
+                Длительность: ${video.getFormattedDuration()}
+                Размер: ${video.getFormattedSize()}
+                Путь: ${video.path}
+                Дата добавления: ${java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(java.util.Date(video.dateAdded))}
+            """.trimIndent()
+
+            androidx.appcompat.app.AlertDialog.Builder(itemView.context)
+                .setTitle("Информация о видео")
+                .setMessage(info)
+                .setPositiveButton("OK", null)
+                .show()
         }
     }
 

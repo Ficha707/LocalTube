@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <!-- Разрешение для управления внешним хранилищем (Android 11+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
@@ -16,7 +16,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- Для Picture-in-Picture -->
+    <uses-feature
+        android:name="android.software.picture_in_picture"
+        android:required="false" />
+
     <application
+        android:name=".LocalTubeApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="LocalTube"
@@ -29,21 +35,49 @@
 
         <!-- Главная активность -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Активность плеера -->
+        <activity
+            android:name=".ui.PlayerActivity"
+            android:exported="false"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden"
+            android:supportsPictureInPicture="true"
+            android:launchMode="singleTop" />
+
+        <!-- Активность настроек -->
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".ui.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MainActivity" />
+        </activity>
+
         <!-- СЕРВИС ДЛЯ ФОНОВОГО ВОСПРОИЗВЕДЕНИЯ -->
         <service
-            android:name="ru.f1cha.localtube.service.VideoPlayerService"
+            android:name=".service.VideoPlayerService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <!-- СЕРВИС ДЛЯ ВОСПРОИЗВЕДЕНИЯ ТОЛЬКО ЗВУКА -->
+        <service
+            android:name=".service.AudioOnlyService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <!-- Для работы с аудиофокусом -->
         <meta-data
